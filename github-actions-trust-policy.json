@@ -10,7 +10,7 @@
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:DavidWallacedot/TechChallenge2:ref:refs/heads/gitops-argocd"
+          "token.actions.githubusercontent.com:sub": "repo:DavidWallacedot@22567477/TechChallenge2@1315847912:ref:refs/heads/gitops-argocd"
         }
       }
     }
