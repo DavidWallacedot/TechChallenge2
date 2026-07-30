@@ -100,12 +100,19 @@ resource "aws_security_group" "jenkins" {
 }
 
 resource "aws_instance" "jenkins" {
-  ami                         = data.aws_ssm_parameter.amazon_linux_2023_ami.value
-  instance_type               = var.jenkins_instance_type
-  subnet_id                   = module.vpc.public_subnets[0]
-  vpc_security_group_ids      = [aws_security_group.jenkins.id]
-  iam_instance_profile        = aws_iam_instance_profile.jenkins.name
-  user_data                   = file("${path.module}/scripts/install-jenkins.sh")
+  ami                    = data.aws_ssm_parameter.amazon_linux_2023_ami.value
+  instance_type          = var.jenkins_instance_type
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.jenkins.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins.name
+  user_data = templatefile(
+    "${path.module}/scripts/install-jenkins.sh.tpl",
+    {
+      aws_region   = var.aws_region
+      cluster_name = module.eks.cluster_name
+    }
+  )
+
   user_data_replace_on_change = true
 
   associate_public_ip_address = true
@@ -125,6 +132,24 @@ resource "aws_instance" "jenkins" {
 
   tags = {
     Name    = "techchallenge2-jenkins"
+    Project = "TechChallenge2"
+  }
+
+
+}
+
+resource "aws_vpc_security_group_ingress_rule" "eks_api_from_jenkins" {
+  description = "Allow Jenkins to access the EKS Kubernetes API"
+
+  security_group_id            = module.eks.cluster_security_group_id
+  referenced_security_group_id = aws_security_group.jenkins.id
+
+  ip_protocol = "tcp"
+  from_port   = 443
+  to_port     = 443
+
+  tags = {
+    Name    = "eks-api-from-jenkins"
     Project = "TechChallenge2"
   }
 }

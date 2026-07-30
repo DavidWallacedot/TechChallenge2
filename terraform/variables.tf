@@ -13,3 +13,9 @@ variable "jenkins_instance_type" {
   type        = string
   default     = "t3.medium"
 }
+
+variable "helm_version" {
+  description = "Version of Helm installed on the Jenkins server"
+  type        = string
+  default     = "v3.18.4"
+}

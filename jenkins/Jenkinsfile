@@ -72,21 +72,21 @@ pipeline {
             }
         }
 
-        stage('Deploy with Helm') {
-            steps {
-                sh '''
-                    helm upgrade --install "$HELM_RELEASE" \
-                      helm/techchallenge2 \
-                      --namespace "$DEPLOY_NAMESPACE" \
-                      --create-namespace \
-                      --set namespace.create=false \
-                      --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
-                      --set-string image.tag="$IMAGE_TAG" \
-                      --wait \
-                      --timeout 10m
-                '''
-            }
-        }
+       stage('Deploy with Helm') {
+    steps {
+        sh '''
+            helm upgrade --install "$HELM_RELEASE" \
+              helm/techchallenge2 \
+              --namespace "$DEPLOY_NAMESPACE" \
+              --create-namespace \
+              --set namespace.create=false \
+              --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
+              --set-string image.tag="$IMAGE_TAG" \
+              --wait \
+              --timeout 10m
+        '''
+    }
+}
 
         stage('Verify Deployment') {
             steps {
