@@ -7,6 +7,24 @@ module "eks" {
 
   endpoint_public_access = true
 
+  authentication_mode = "API_AND_CONFIG_MAP"
+
+  access_entries = {
+    jenkins = {
+      principal_arn = aws_iam_role.jenkins_ec2_role.arn
+
+      policy_associations = {
+        jenkins_cluster_admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
