@@ -1,0 +1,28 @@
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: techchallenge2-jenkins:lts
+    container_name: techchallenge2-jenkins
+    restart: unless-stopped
+
+    user: root
+
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.aws:/root/.aws:ro
+
+    environment:
+      AWS_REGION: us-east-2
+      EKS_CLUSTER_NAME: techchallenge2-eks
+      ECR_REPOSITORY: techchallenge2-app
+      JENKINS_DEPLOY_NAMESPACE: techchallenge2-jenkins
+
+volumes:
+  jenkins_home:

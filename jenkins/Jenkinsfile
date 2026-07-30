@@ -1,0 +1,121 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-2'
+        ECR_REPOSITORY = 'techchallenge2-app'
+        EKS_CLUSTER_NAME = 'techchallenge2-eks'
+        DEPLOY_NAMESPACE = 'techchallenge2-jenkins'
+        HELM_RELEASE = 'techchallenge2-jenkins'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Prepare Image Variables') {
+            steps {
+                script {
+                    env.AWS_ACCOUNT_ID = sh(
+                        script: 'aws sts get-caller-identity --query Account --output text',
+                        returnStdout: true
+                    ).trim()
+
+                    env.ECR_REGISTRY =
+                        "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+
+                    env.IMAGE_TAG = env.GIT_COMMIT.take(7)
+                    env.FULL_IMAGE =
+                        "${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}"
+                }
+
+                sh '''
+                    echo "Image: $FULL_IMAGE"
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build \
+                      -t "$FULL_IMAGE" \
+                      ./app
+                '''
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                sh '''
+                    aws ecr get-login-password \
+                      --region "$AWS_REGION" |
+                    docker login \
+                      --username AWS \
+                      --password-stdin "$ECR_REGISTRY"
+
+                    docker push "$FULL_IMAGE"
+                '''
+            }
+        }
+
+        stage('Configure EKS Access') {
+            steps {
+                sh '''
+                    aws eks update-kubeconfig \
+                      --region "$AWS_REGION" \
+                      --name "$EKS_CLUSTER_NAME"
+                '''
+            }
+        }
+
+        stage('Deploy with Helm') {
+            steps {
+                sh '''
+                    helm upgrade --install "$HELM_RELEASE" \
+                      helm/techchallenge2 \
+                      --namespace "$DEPLOY_NAMESPACE" \
+                      --create-namespace \
+                      --set namespace.create=false \
+                      --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
+                      --set-string image.tag="$IMAGE_TAG" \
+                      --wait \
+                      --timeout 10m
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    kubectl rollout status \
+                      deployment/techchallenge2-app \
+                      --namespace "$DEPLOY_NAMESPACE" \
+                      --timeout=5m
+
+                    kubectl get deployment,service,ingress,pods \
+                      --namespace "$DEPLOY_NAMESPACE"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Jenkins CI/CD pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Jenkins CI/CD pipeline failed. Review the stage logs.'
+        }
+
+        always {
+            sh '''
+                docker logout "$ECR_REGISTRY" || true
+            '''
+        }
+    }
+}
