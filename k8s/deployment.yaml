@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: techchallenge2-app
-          image: 258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app:latest
+          image: 258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app:a6068d1616b776dca2503ef479c27a937bb0dffa
           ports:
             - containerPort: 5000
 
