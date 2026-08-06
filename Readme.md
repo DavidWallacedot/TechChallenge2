@@ -345,7 +345,29 @@ Visit
 
 ```
 http://<ALB DNS NAME>
+
+
+
 ```
+
+kubectl get svc argocd-server -n argocd
+
+Look under EXTERNAL-IP.
+
+Get the initial password
+kubectl get secret argocd-initial-admin-secret \
+  -n argocd \
+  -o jsonpath="{.data.password}" |
+base64 --decode
+
+echo
+
+The initial username is:
+
+admin
+
+
+
 
 ---
 
