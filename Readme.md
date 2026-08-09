@@ -163,7 +163,7 @@ Review the deployment.
 terraform plan
 ```
 
-Provision AWS infrastructure.
+Provision AWS infrastructure.Be sure to do this in the main branch first
 
 ```bash
 terraform apply
@@ -356,8 +356,8 @@ Look under EXTERNAL-IP.
 
 Get the initial password
 kubectl get secret argocd-initial-admin-secret \
-  -n argocd \
-  -o jsonpath="{.data.password}" |
+ -n argocd \
+ -o jsonpath="{.data.password}" |
 base64 --decode
 
 echo
@@ -365,9 +365,6 @@ echo
 The initial username is:
 
 admin
-
-
-
 
 ---
 
@@ -686,3 +683,39 @@ AWS Load Balancer
 
 Application
 ```
+
+## Trouble shooting
+
+Note you may have to run these commands to start with just to get the application running after first provisioning the infrastructure:
+
+docker build \
+ -t techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047 \
+ ./app
+
+Authenticate Docker to ECR:
+
+aws ecr get-login-password \
+ --region us-east-2 \
+ | docker login \
+ --username AWS \
+ --password-stdin 258083582548.dkr.ecr.us-east-2.amazonaws.com
+
+Tag the image for ECR:
+
+docker tag \
+ techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047 \
+ 258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047
+
+Push it:
+
+docker push \
+ 258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047
+
+kubectl get pods -n techchallenge2 -w
+NAME READY STATUS RESTARTS AGE
+techchallenge2-app-5fc4f64657-h75cd 0/1 ImagePullBackOff 0 9m32s
+techchallenge2-app-5fc4f64657-t2wdq 0/1 ImagePullBackOff 0 9m32s
+[davidwallace@localhost TechChallenge2]$ kubectl delete pod \ \
+ techchallenge2-app-5fc4f64657-h75cd \
+ techchallenge2-app-5fc4f64657-t2wdq \
+ -n techchallenge2
