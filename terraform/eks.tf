@@ -10,6 +10,24 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  authentication_mode = "API_AND_CONFIG_MAP"
+
+access_entries = {
+  terraform_admin = {
+    principal_arn = "arn:aws:iam::258083582548:user/Kubernetes-Admin"
+
+    policy_associations = {
+      cluster_admin = {
+        policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+        access_scope = {
+          type = "cluster"
+        }
+      }
+    }
+  }
+}
+
   addons = {
     coredns = {}
 
