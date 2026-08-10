@@ -5,7 +5,7 @@ on:
     branches:
       - gitops-argocd
     paths-ignore:
-      - "helm/techchallenge2/values.yaml"
+      - "k8s/deployment.yaml"
 
 permissions:
   id-token: write
@@ -42,25 +42,26 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Update Helm image tag
+      - name: Update Kubernetes image tag
         env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           sed -i \
-            "s|^  tag:.*|  tag: \"$IMAGE_TAG\"|" \
-            helm/techchallenge2/values.yaml
+        "s|image: .*techchallenge2-app:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|" \
+        k8s/deployment.yaml
 
       - name: Commit updated image tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add helm/techchallenge2/values.yaml
+          git add k8s/deployment.yaml
 
           if git diff --cached --quiet; then
             echo "No Helm values changes to commit."
             exit 0
           fi
 
-          git commit -m "Update application image to ${GITHUB_SHA}"
+          echo "No Kubernetes manifest changes to commit."
           git push origin HEAD:gitops-argocd
