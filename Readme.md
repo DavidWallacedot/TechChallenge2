@@ -688,6 +688,8 @@ Application
 
 Note you may have to run these commands to start with just to get the application running after first provisioning the infrastructure:
 
+RUN INSIDE TERRAFORM folder:mv argocd-application.tf argocd-application.tf.disabled
+RUN INSIDE APP DIR:
 docker build \
  -t techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047 \
  ./app
@@ -710,6 +712,20 @@ Push it:
 
 docker push \
  258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app:829464ef616158a42c202e884fc14930f4b09047
+
+RUN INSIDE TERRAFORM DIR: terraform apply
+
+After it finishes, verify the CRD exists:
+
+kubectl get crd applications.argoproj.io
+
+If you see it, restore the file:
+
+mv argocd-application.tf.disabled argocd-application.tf
+
+Then run:
+
+terraform apply
 
 kubectl get pods -n techchallenge2 -w
 NAME READY STATUS RESTARTS AGE
