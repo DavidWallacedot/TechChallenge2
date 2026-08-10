@@ -48,8 +48,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           sed -i \
-        "s|image: .*techchallenge2-app:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|" \
-        k8s/deployment.yaml
+          "s|image: .*techchallenge2-app:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG|" \
+          k8s/deployment.yaml
 
       - name: Commit updated image tag
         run: |
