@@ -6,7 +6,7 @@ replicaCount: 2
 
 image:
   repository: 258083582548.dkr.ecr.us-east-2.amazonaws.com/techchallenge2-app
-  tag: "d88b97e882e1b0d45391e62d7880145e6c3c9091"
+  tag: "ef969405e0ad2458c36c7e353eda25e218dd8c22"
   pullPolicy: IfNotPresent
 
 container:
